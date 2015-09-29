@@ -6,66 +6,84 @@
 package db.person;
 
 import db.DB;
-import db.DbCar;
-import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import logicLevel.person.Admin;
+import logicLevel.person.Person;
 
 /**
  *
  * @author Laura
  */
 public class DbAdmin extends Admin{
-
+    public DbAdmin(){};
     public DbAdmin(int id, String name, String email, String password, String role) {
         super(id, name, email, password, role);
     }
-
+    
     @Override
-    public void deletePerson(int id) {
-        deleteObject("Person", id);
+    public void deletePersonById(int id) {
+        DbPerson.remove(id);
+        DB.commit();
     }
 
     @Override
-    public void deleteCar(int id) {
-        deleteObject("Car", id);
+    public Person getPersonByName(String name) {
+        String query = "SELECT * FROM PERSON WHERE NAME = '" + name + "'";
+        return getPersonList(query).get(0);
     }
 
     @Override
-    public void deleteInsurance(int id) {
-        deleteObject("Insurance", id);
+    public List<Person> getPersonsByRole(String role) {
+        String query = "SELECT * FROM PERSON WHERE ROLE = '" + role + "'";
+        return getPersonList(query);
+    }
+    
+        @Override
+    public List<Person> getAllPerson() {
+        String query = "SELECT * FROM PERSON";
+        return getPersonList(query);
+    }
+
+    private static List<Person> getPersonList(String query) {
+        List<Person> persons = new ArrayList<Person>();
+        try {
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                persons.add(DbPerson.parse(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DbAdmin.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return persons;
     }
 
     @Override
-    public void deleteCarRent(int id) {
-        deleteObject("Car_rent", id);
+    public Person login(String email, String password) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void save() {
-        DbPerson.save(getPersonName(), getPersonEmail(), getPersonPassword(), getPersonRole());
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void remove() {
-        DbPerson.remove(getPersonId());
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void update() {
-        DbPerson.update(getPersonName(), getPersonEmail(), getPersonPassword(), getPersonRole());
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+
+
     
-    private void deleteObject(String table, int id) {
-        String str = "delete from " + table + " where id = ?";
-        try {
-            PreparedStatement ps = DB.getConnection().prepareCall(str);
-	    ps.setInt(1, id);
-	    ps.execute();
-	} catch (SQLException ex) {
-	    Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
-	}
-    }
 }

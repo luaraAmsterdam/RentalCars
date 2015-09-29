@@ -6,8 +6,11 @@
 package main;
 
 import db.DB;
-import db.DbService;
+import db.person.DbAdmin;
+import db.person.DbInsurer;
+import db.person.DbOwner;
 import db.person.DbPerson;
+import db.person.DbRenter;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -24,6 +27,20 @@ import java.util.logging.Logger;
 import logicLevel.Car;
 import logicLevel.Insurance;
 import logicLevel.Service;
+import logicLevel.person.Admin;
+import logicLevel.person.Insurer;
+import logicLevel.person.Owner;
+import logicLevel.person.Person;
+import logicLevel.person.Renter;
+import servicelevel.AdminService;
+import servicelevel.AdminServiceImpl;
+import servicelevel.InsurerService;
+import servicelevel.InsurerServiceImpl;
+import servicelevel.OwnerService;
+import servicelevel.OwnerServiceImpl;
+import servicelevel.PersonService;
+import servicelevel.PersonServiceImpl;
+import servicelevel.UserService;
 import servicelevel.UserServiceImpl;
 
 /**
@@ -33,61 +50,51 @@ import servicelevel.UserServiceImpl;
 public class CarRentMain {
 
     public static final String UBIND = "PC/user";
-    public static final Service service = new DbService();
-
+    public static final String PBIND = "PC/person";
+    public static final String ABIND = "PC/admin";
+    public static final String OBIND = "PC/owner";
+    public static final String IBIND = "PC/insurer";
+    //Logic level
+    public static Admin adminLL = new DbAdmin();
+    public static Insurer insurerLL = new DbInsurer();
+    public static Owner ownerLL = new DbOwner();
+    public static Person personLL = new DbPerson();
+    public static Renter renternLL = new DbRenter();
+    //Service level
+    public static OwnerService ownerService = null;
+    public static PersonService personService = null;
+    public static InsurerService insurerService = null;
+    public static AdminService adminService = null;
+    public static UserService userService = null;
+    
     public static void main(String[] args) throws RemoteException, AlreadyBoundException, SQLException {
-
-//        DbService service = new DbService();
-//        service.login("0000@gmail.com", "123456");
-//          service.login("12234@gmail.com", "1256");
-//          service.getAllCarRentForUser(2);
-//          service.getCarRentById(5);
-//          service.getCarByCost(50);
-//          service.getCarByModel("Mers", "A6", "orange");
-//          service.getCarByPower(1.6f, 160);
-
-//       List <Insurance> ins = service.getInsuranceByType("All");
-//       for(int i = 0; i < ins.size(); i++) {
-//           Insurance in = ins.get(i);
-//           System.out.println(in.getInsuranceCost());
-//       }
-        final Registry registry = LocateRegistry.createRegistry(3000);
+        Registry registry = LocateRegistry.createRegistry(3000);
         System.out.println("Service register OK");
         
-        final UserServiceImpl userService = new UserServiceImpl();
-        Remote ustub = UnicastRemoteObject.exportObject(userService, 0);
-        
+        userService = new UserServiceImpl();
+        UserService ustub = (UserService)UnicastRemoteObject.exportObject(userService, 0);
         registry.bind(UBIND, ustub);
         System.out.println("Service USER BIND success");
+        
+        personService = new PersonServiceImpl();
+        PersonService pstub = (PersonService)UnicastRemoteObject.exportObject(personService, 0);
+        registry.bind(PBIND, pstub);
+        System.out.println("Service PERSON BIND success");
+        
+        adminService = new AdminServiceImpl();
+        AdminService astub = (AdminService)UnicastRemoteObject.exportObject(adminService, 0);
+        registry.bind(ABIND, astub);
+        System.out.println("Service ADMIN BIND success");
+        
+        insurerService = new InsurerServiceImpl();
+        Remote istub = UnicastRemoteObject.exportObject(insurerService, 0);
+        registry.bind(IBIND, istub);
+        System.out.println("Service INSURER BIND success");
+        
+        ownerService = new OwnerServiceImpl();
+        Remote ostub = UnicastRemoteObject.exportObject(ownerService, 0);
+        registry.bind(OBIND, ostub);
+        System.out.println("Service OWNER BIND success");
 
     }
 }
-
-
-
-//        service.getAllPerson();
-//        Connection c = DB.getConnection();
-//        PreparedStatement ps = c.prepareStatement(" SELECT * FROM PERSON ");
-//        ResultSet rs = ps.executeQuery();
-//
-//        if (rs.next()) {
-//            System.out.println(rs.getString("role"));
-//        }
-//        c.close();
-//        c = DB.getConnection();
-
-
-
-//        
-//        String str = "SELECT * FROM PERSON";
-//        try {
-//            PreparedStatement pss = c.prepareCall(str);
-//            ResultSet rss = pss.executeQuery();
-//            while (rss.next()) {
-//                //persons.add(DbPerson.parse(rs));
-//                System.out.println(rss.getInt("ID"));
-//            }
-//        } catch (SQLException ex) {
-//            Logger.getLogger(DbService.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//        DB.closeConnection();

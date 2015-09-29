@@ -5,6 +5,7 @@
  */
 package logicLevel;
 
+import db.Storable;
 import logicLevel.person.Owner;
 import logicLevel.person.Person;
 
@@ -12,7 +13,7 @@ import logicLevel.person.Person;
  *
  * @author Laura
  */
-public abstract class Car {
+public abstract class Car implements Storable{
     private int id;
     private String vin;
     private String mark;

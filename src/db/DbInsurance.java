@@ -5,10 +5,13 @@
  */
 package db;
 
+import db.person.DbPerson;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import logicLevel.Insurance;
@@ -20,22 +23,22 @@ import logicLevel.person.Person;
  * @author Laura
  */
 public class DbInsurance extends Insurance implements Storable{
-    private static DbService dbService;
     public DbInsurance(int id, float cost, String type, Person insurer) {
         super(id, cost, type, insurer);
-        dbService = new DbService();
     }
 
     @Override
     public void save() {
         String str = "INSERT INTO Insurance (cost, type, id_insurer) VALUES (?, ?, ?)";
         updateOrOnsert(str);
+        DB.commit();
     }
     
     @Override
     public void update() {
         String str = "UPDATE Insurance SET cost=?, type=?, id_insurer=?";
         updateOrOnsert(str);
+        DB.commit();
     }
 
     @Override
@@ -45,6 +48,7 @@ public class DbInsurance extends Insurance implements Storable{
             PreparedStatement ps = DB.getConnection().prepareCall(str);
 	    ps.setInt(1, getInsuranceId());
 	    ps.execute();
+            DB.commit();
 	} catch (SQLException ex) {
 	    Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
 	}
@@ -53,7 +57,7 @@ public class DbInsurance extends Insurance implements Storable{
     public static Insurance parse(ResultSet set) throws SQLException {
         int insurer_id = set.getInt("id_insurer");
         Insurance ins = new DbInsurance(set.getInt("id"), set.getFloat("cost"), set.getString("type"), null);
-        Person insurer = dbService.getPersonById(insurer_id);
+        Person insurer = getPersonById(insurer_id);
         ins.setInsurer(insurer);
         return ins;
     }
@@ -77,5 +81,22 @@ public class DbInsurance extends Insurance implements Storable{
             Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
         }
     }    
+    private static Person getPersonById(int id) {
+        String query = "SELECT * FROM Person WHERE ID = " + id;
+        return getPersonList(query).get(0);
+    }
+    private static List<Person> getPersonList(String query) {
+        List<Person> persons = new ArrayList<Person>();
+        try {
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                persons.add(DbPerson.parse(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DbInsurance.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return persons;
+    }
     
 }

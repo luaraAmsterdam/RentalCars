@@ -46,12 +46,11 @@ public class DB
         return connection;
     }
     
-//    public static void closeConnection() {
-//        if (connection != null) 
-//            try {
-//                connection.close();
-//        } catch (SQLException ex) {
-//            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
+    public static void commit() {
+        try {
+            connection.commit();
+        } catch (SQLException ex) {
+            Logger.getLogger(DB.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 }

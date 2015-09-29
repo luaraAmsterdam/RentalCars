@@ -5,6 +5,7 @@
  */
 package db;
 
+import db.person.DbRenter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,7 +13,9 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import logicLevel.Car;
@@ -25,34 +28,46 @@ import logicLevel.Insurance;
  */
 public class DbCarRent extends CarRent{
     private int idRenter;
-    private static DbService dbService = new DbService();
     
-    public DbCarRent(int id, int idRenter, Car car, Insurance insurance, String dateFrom, String dateTo, float resultCost) {
-        super(id, car, insurance, dateFrom, dateTo, resultCost);
+    public DbCarRent(int id, int idRenter, Car car, Insurance insurance, String dateFrom, String dateTo, float resultCost, 
+            String insurer, String owner) {
+        super(id, car, insurance, dateFrom, dateTo, resultCost, insurer, owner);
         this.idRenter = idRenter;
     }
 
     @Override
     public void save() {
-        String str = "INSERT INTO Car_rent (id_car,id_renter,id_insurance,date_from,date_to,result_cost)"
-                + " VALUES (?, ?, ?, ?, ?, ?)";
+        String str = "INSERT INTO Car_rent (id_car,id_renter,id_insurance,date_from,date_to,result_cost, insurer_approve, owner_approve)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         updateOrInsert(str);
+        DB.commit();
     }
 
     @Override
     public void update() {
-        String str = "update Car_rent set id_car=?,id_renter=?,id_insurance=?,date_from=?,date_to=?,"
-                + "result_cost=?";
-        updateOrInsert(str);
+        System.out.println("id carrent " + getCarRentId());
+        System.out.println(getInsurerApprove());
+        String str = "update Car_rent set insurer_approve= '" + getInsurerApprove() +
+                "', owner_approve = '" + getOwnerApprove() + "' where id = " + getCarRentId();
+        try {
+            PreparedStatement ps = DB.getConnection().prepareStatement(str);            
+            ps.execute();
+            
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
+        } 
+        DB.commit();
     }
     
     @Override
     public void remove() {
         String str = "delete from Car_rent where id = ?";
         try {
-            PreparedStatement ps = DB.getConnection().prepareCall(str);
+            PreparedStatement ps = DB.getConnection().prepareStatement(str);
 	    ps.setInt(1, getCarRentId());
 	    ps.execute();
+            DB.commit();
 	} catch (SQLException ex) {
 	    Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
 	}
@@ -67,12 +82,37 @@ public class DbCarRent extends CarRent{
         String dateFrom = df.format(set.getDate("date_from"));
         String dateTo= df.format(set.getDate("date_to"));
         int resultCost = set.getInt("result_cost");
-        CarRent carRent = new DbCarRent(set.getInt("id"), idRenter, null, null, dateFrom, dateTo, resultCost);
-        Car car = dbService.getCarById(idCar);
+        String insurerApprove = set.getString("insurer_approve");
+        String ownerApprove = set.getString("insurer_approve");
+        
+        CarRent carRent = new DbCarRent(set.getInt("id"), idRenter, null, null, dateFrom, dateTo, resultCost, 
+                insurerApprove, ownerApprove);
+        Car car = getCarById(idCar);
         carRent.setCar(car);
-        Insurance insurance = dbService.getInsuranceById(idInsurance);
+        Insurance insurance = getInsuranceById(idInsurance);
         carRent.setInsurance(insurance);
         return carRent;
+    }
+    
+    public static CarRent getCarRentById(int id) {
+        System.out.println("idddd " + id);
+        String query = "SELECT * FROM CAR_RENT WHERE ID = " + id;
+        return getCarRent(query).get(0);
+    }
+    
+    private static List<CarRent> getCarRent(String query) {
+                List<CarRent> carRents = new ArrayList<CarRent>();
+        try {
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+
+            while (rs.next()) {
+                carRents.add(DbCarRent.parse(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DbRenter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return carRents;
     }
     
     private void updateOrInsert(String str) {
@@ -93,6 +133,8 @@ public class DbCarRent extends CarRent{
                 Logger.getLogger(DbCarRent.class.getName()).log(Level.SEVERE, null, ex);
             }
             ps.setFloat(6, getCarRentResultCost());
+            ps.setString(7, getInsurerApprove());
+            ps.setString(8, getOwnerApprove());
             
             ps.execute();
             
@@ -104,4 +146,40 @@ public class DbCarRent extends CarRent{
         } 
     }
     
+    private static Car getCarById(int id) {
+        String query = "SELECT * FROM Car WHERE ID = " + id;
+        return getCars(query).get(0);
+    }
+
+    private static Insurance getInsuranceById(int id) {
+        String query = "SELECT * FROM Insurance WHERE ID = " + id;
+        return getInsurance(query).get(0);
+    }
+    
+    private static List<Car> getCars(String query) {
+        List<Car> cars = new ArrayList();
+        try {
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while(rs.next())
+                cars.add(DbCar.parse(rs));
+        } catch (SQLException ex) {
+            Logger.getLogger(DbCarRent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return cars;
+    }
+    
+    private static List<Insurance> getInsurance(String query) {
+        List<Insurance> insurances = new ArrayList<Insurance>();
+        try {
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                insurances.add(DbInsurance.parse(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DbCarRent.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return insurances;
+    }
 }

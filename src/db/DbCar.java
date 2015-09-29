@@ -6,10 +6,13 @@
 package db;
 
 import db.person.DbOwner;
+import db.person.DbPerson;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import logicLevel.Car;
@@ -20,25 +23,26 @@ import logicLevel.person.Person;
  *
  * @author Laura
  */
-public class DbCar extends Car implements Storable{
-    private static DbService dbService;
+public class DbCar extends Car {
     public DbCar(int id, String vin, String mark, String model, float volume, float power,
             String color, float cost, Person owner) {
         super(id, vin, mark, model, volume, power, color, cost, owner);
-        dbService = new DbService();
     }
+    
 
     @Override
     public void save() {
         String str = "INSERT INTO Car (vin, mark, model, volume, powerc, color, "
                 + "cost, id_owner) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         updateOrInsert(str);
+        DB.commit();
     }
 
     @Override
     public void update() {
         String str = "update Car set vin=?, mark=?, model=?, volume=?, powerc=?, color=?, "
                 + "cost=?, id_owner=?";
+        DB.commit();
     }
     
     @Override
@@ -48,6 +52,7 @@ public class DbCar extends Car implements Storable{
             PreparedStatement ps = DB.getConnection().prepareCall(str);
 	    ps.setInt(1, getCarId());
 	    ps.execute();
+            DB.commit();
 	} catch (SQLException ex) {
 	    Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
 	}
@@ -59,7 +64,7 @@ public class DbCar extends Car implements Storable{
         Car car = new DbCar(set.getInt("id"), set.getString("vin"), set.getString("mark"), set.getString("model"),
                 set.getFloat("volume"), set.getFloat("powerc"), set.getString("color"), set.getFloat("cost"),
                 null);
-        Person owner = dbService.getPersonById(owner_id);
+        Person owner = getPersonById(owner_id);
         car.setOwner(owner);
         return car;
     }
@@ -85,5 +90,24 @@ public class DbCar extends Car implements Storable{
         } catch (SQLException ex) {
             Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private static Person getPersonById(int id) {
+        String query = "SELECT * FROM Person WHERE ID = " + id;
+        return getPersonList(query).get(0);
+    }
+    
+    private static List<Person> getPersonList(String query) {
+        List<Person> persons = new ArrayList<Person>();
+        try {
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            while (rs.next()) {
+                persons.add(DbPerson.parse(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return persons;
     }
 }
