@@ -29,14 +29,14 @@ public abstract class Owner extends Person {
     }
     
     public void approveOwnerOrder(int idCar, String status) {
-//        for(int i = 0; i < listCar.size(); i ++) {
-//            if(listCar.get(i).getCarId() == idCar) {
-                CarRent carRent = DbCarRent.getCarRentById(idCar);
-                carRent.setOwnerApprove(status);
-                carRent.update();
-//                break;
-//            }
-//        }
+        CarRent carRent = DbCarRent.getCarRentById(idCar);
+        carRent.setOwnerApprove(status);
+        String insurer = carRent.getInsurerApprove();
+        if(status.equals("approved") && insurer.equals("approved")) 
+            carRent.setCarStatus("approved");
+        else if (status.equals("not approved"))
+            carRent.setCarStatus("not approved");
+        carRent.update();
     }
     
     public abstract List<Object> getUnreviewedOrderForOwner(int id);

@@ -74,9 +74,21 @@ public class UserServiceImpl implements UserService{
     @Override
     public Object addCarRentOrder(int id_Renter, int id_car, int id_insurance, String from, String to) throws RemoteException {
         CarRent cr = CarRentMain.renternLL.addCarRentOrder(id_Renter, id_car, id_insurance, from, to);
-        return parseCarRent(cr);
+        if(cr == null)
+            return null;
+        else 
+            return parseCarRent(cr);
     }
 
+     @Override
+    public String getCarRent(int idOrder) throws RemoteException {
+        return CarRentMain.renternLL.getCarRent(idOrder);
+    }
+
+    @Override
+    public String returnCarRent(int idOrder) throws RemoteException {
+        return CarRentMain.renternLL.returnCarRent(idOrder);
+    }
 
     @Override
     public List<Object> getInsuranceByType(String type) throws RemoteException {
@@ -98,7 +110,7 @@ public class UserServiceImpl implements UserService{
                 c.getCarRentId(), car.getCarMark(), car.getCarModel(), car.getCarVolume(),
                 car.getCarPower(), car.getCarColor(), insurance.getInsuranceType(), 
                 c.getCarRentDateFrom(), c.getCarRentDateTo(), c.getCarRentResultCost(), 
-                c.getInsurerApprove(), c.getOwnerApprove()
+                c.getInsurerApprove(), c.getOwnerApprove(), c.getCarStatus()
             };
     }
     
@@ -136,5 +148,4 @@ public class UserServiceImpl implements UserService{
         }
         return res;
     }
-
 }

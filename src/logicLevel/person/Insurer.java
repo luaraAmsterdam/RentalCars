@@ -41,16 +41,16 @@ public abstract class Insurer extends Person{
     }
     
     public void approveInsuranceOrder(int idIns, String status) {
-//        for(int i = 0; i < listInsurance.size(); i ++) {
-//            if(listInsurance.get(i).getInsuranceId() == idIns) {
-                CarRent carRent = DbCarRent.getCarRentById(idIns);
-                carRent.setInsurerApprove(status);
-                carRent.update();
-                
-//                break;
-//            }
-//        }
+        CarRent carRent = DbCarRent.getCarRentById(idIns);
+        carRent.setInsurerApprove(status);
+        String owner = carRent.getOwnerApprove();
+         if(status.equals("approved") && owner.equals("approved")) 
+            carRent.setCarStatus("approved");
+        else if (status.equals("not approved"))
+            carRent.setCarStatus("not approved");
+        carRent.update();
     }
+   
     
     public abstract List<Insurance> getAllInsuranceForInsurer(int id);
     public abstract List<Insurance> getInsuranceByTypeForInsurer(String type, int id);

@@ -30,7 +30,7 @@ public interface UserService extends Remote{
     List<Object> getCarByCost(float minCost) throws RemoteException;
     List<Object> getInsuranceByType(String type)throws RemoteException;
     List<Object> getInsuranceByInsurer(String name) throws RemoteException;
-    Object addCarRentOrder(int id_Renter, int id_car, int id_insurance, String from, String to) throws RemoteException;
-    
-
+    Object addCarRentOrder(int idRenter, int idCar, int id_insurance, String from, String to) throws RemoteException;
+    String getCarRent(int idOrder) throws RemoteException;
+    String returnCarRent(int idOrder) throws RemoteException;
 }

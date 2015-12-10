@@ -39,29 +39,62 @@ public abstract class Renter extends Person {
     public abstract List<Car> getCarByCost(float minCost);
     public abstract List<Insurance> getInsuranceByType(String type);
     public abstract List<Insurance> getInsuranceByInsurer(String name);
+    
     public CarRent addCarRentOrder(int id_Renter, int id_car, int id_insurance, String from, String to) {
         if(id_Renter > 0 && id_car > 0 && id_insurance > 0 && from != null && to != null) {
-            CarRent carRent = null;
-            DateFormat format = new SimpleDateFormat("yyyy-mm-dd");
-            try {
-                java.util.Date dateF = (java.util.Date) format.parse(from);
-                java.util.Date dateT = (java.util.Date) format.parse(to);
-                Car car = DbRenter.getCarById(id_car);
-                Insurance ins = DbRenter.getInsuranceById(id_car);
-                long diff = (dateT.getTime() - dateF.getTime());
-                int day = (int) (diff/86400000 +1);
-                float carCost = car.getCarCost();
-                float cost = ins.getInsuranceCost();
-                float resultCost = (carCost + cost) * day * 1.1f;
-                carRent = new DbCarRent(-1, id_Renter, car, ins, from, to, resultCost, "unreviewed", "unreviewed");
-                carRent.save();
-            } catch (ParseException ex) {
-                Logger.getLogger(DbRenter.class.getName()).log(Level.SEVERE, null, ex);
+            boolean check = DbRenter.checkAllCarRentByDate(from, to, id_car);
+            if(check) {
+                CarRent carRent = null;
+                DateFormat format = new SimpleDateFormat("yyyy-mm-dd");
+                try {
+                    java.util.Date dateF = (java.util.Date) format.parse(from);
+                    java.util.Date dateT = (java.util.Date) format.parse(to);
+                    Car car = DbRenter.getCarById(id_car);
+                    Insurance ins = DbRenter.getInsuranceById(id_car);
+                    long diff = (dateT.getTime() - dateF.getTime());
+                    int day = (int) (diff/86400000 +1);
+                    float carCost = car.getCarCost();
+                    float cost = ins.getInsuranceCost();
+                    float resultCost = (carCost + cost) * day * 1.1f;
+                    carRent = new DbCarRent(-1, id_Renter, car, ins, from, to, resultCost, "unreviewed", "unreviewed", "wait approve");
+                    carRent.save();
+                } catch (ParseException ex) {
+                    Logger.getLogger(DbRenter.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return carRent;
             }
-            return carRent;
         }
-        else 
-            return null;
+        return null;
     }
     
+    public String getCarRent(int order) {
+        if(order > 0) {
+            boolean check = DbRenter.checkCarRentStatus(order);
+            CarRent carRent = DbCarRent.getCarRentById(order);
+            String curStatus = carRent.getCarStatus();
+            System.out.println("getCarRent " + curStatus + "check " + check);
+            if(check && curStatus.equals("approved")) {
+                carRent.setCarStatus("taken");
+                carRent.update();
+                return "get";
+            } else
+                return curStatus;
+        }
+        return "error";
+    }
+    
+    public String returnCarRent(int order) {
+        if(order > 0) {
+            CarRent carRent = DbCarRent.getCarRentById(order);
+            String curStatus = carRent.getCarStatus();
+            System.out.println("getCarRent " + curStatus );
+            if(curStatus.equals("taken")) {
+                carRent.setCarStatus("returned");
+                carRent.update();
+                return "return";
+            } else
+                return curStatus;
+        }
+        return "error";
+    }
 }

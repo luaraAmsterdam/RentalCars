@@ -114,6 +114,48 @@ public class DbRenter extends Renter{
         return getInsurance(query).get(0);
     }
     
+    public static boolean checkAllCarRentByDate(String from, String to, int id) {
+        try {
+            String query = "SELECT COUNT(ID) FROM CAR_RENT WHERE ID_CAR = " + id +
+                "AND (DATE_TO < '" + from + "' OR DATE_FROM > '" + to + "')";
+            System.out.println("Query = " + query);
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            if(rs.next()) {
+                int count = rs.getInt(1);
+                System.out.println("count = " + count);
+                String query1 = "SELECT COUNT(ID) FROM CAR_RENT WHERE ID_CAR = " + id;
+                rs = statement.executeQuery(query1);
+                if(rs.next()) {
+                    int count1 = rs.getInt(1);
+                System.out.println("count1 = " + count1);
+                    return count1 == count;
+                }           
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DbRenter.class.getName()).log(Level.SEVERE, null, ex);
+        }        
+        return false;
+    }
+    
+    public static boolean checkCarRentStatus(int idCarRent) {
+        try {
+            String query = "SELECT INSURER_APPROVE, OWNER_APPROVE FROM CAR_RENT WHERE ID = " + idCarRent;
+            Statement statement = DB.getConnection().createStatement();
+            ResultSet rs = statement.executeQuery(query);
+            if(rs.next()) {
+                String insurer = rs.getString("insurer_approve");
+                String owner = rs.getString("owner_approve");
+                boolean approve = insurer.equals("approved") && owner.equals("approved");
+                System.out.println("status " + insurer + " " + owner + " " + approve);
+                return approve;
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(DbRenter.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+    
     private static List<Insurance> getInsurance(String query) {
         List<Insurance> insurances = new ArrayList<Insurance>();
         try {

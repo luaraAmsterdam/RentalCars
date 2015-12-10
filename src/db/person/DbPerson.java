@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import logicLevel.person.Person;
-
+ 
 /**
  *
  * @author Laura
@@ -29,6 +29,7 @@ public class DbPerson extends Person {
         String str = "INSERT INTO Person (name,mail, password, role)"
                 + " VALUES (?, ?, ?, ?)";
         updateOrInsert(str, name, email, password, role);
+        DB.commit();
     }
     public static void remove(int id) {
         String str = "delete from Person where id = ?";
@@ -95,7 +96,10 @@ public class DbPerson extends Person {
 
     @Override
     public void save() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        String str = "INSERT INTO Person (name,mail, password, role)"
+                + " VALUES (?, ?, ?, ?)";
+        updateOrInsert(str, getPersonName(), getPersonEmail(), getPersonPassword(), getPersonRole());
+        DB.commit();
     }
 
     @Override

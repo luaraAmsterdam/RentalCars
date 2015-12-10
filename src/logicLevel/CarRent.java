@@ -20,9 +20,10 @@ public abstract class CarRent  implements Storable {
     private float resultCost;
     private String insurerApprove;
     private String ownerApprove;
+    private String carStatus;
     
     public CarRent(int id, Car car, Insurance insurance, String dateFrom,
-            String dateTo, float resultCost, String insurerApprove, String ownerApprove) {
+            String dateTo, float resultCost, String insurerApprove, String ownerApprove, String carStatus) {
         this.id = id;
         this.car = car;
         this.insurance = insurance;
@@ -31,6 +32,7 @@ public abstract class CarRent  implements Storable {
         this.resultCost = resultCost;
         this.insurerApprove = insurerApprove;
         this.ownerApprove = ownerApprove;
+        this.carStatus = carStatus;
     }
     
     public void setCarRentId(int id) {
@@ -77,11 +79,19 @@ public abstract class CarRent  implements Storable {
         return ownerApprove;
     }
     
+    public String getCarStatus() {
+        return carStatus;
+    }
+    
     public void setInsurerApprove(String insurerApprove)  {
         this.insurerApprove  = insurerApprove;
     }
     
     public void setOwnerApprove(String ownerApprove)  {
         this.ownerApprove  = ownerApprove;
+    }
+    
+    public void setCarStatus(String carStatus) {
+        this.carStatus = carStatus;
     }
 }

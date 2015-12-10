@@ -30,15 +30,15 @@ public class DbCarRent extends CarRent{
     private int idRenter;
     
     public DbCarRent(int id, int idRenter, Car car, Insurance insurance, String dateFrom, String dateTo, float resultCost, 
-            String insurer, String owner) {
-        super(id, car, insurance, dateFrom, dateTo, resultCost, insurer, owner);
+            String insurer, String owner, String status) {
+        super(id, car, insurance, dateFrom, dateTo, resultCost, insurer, owner, status);
         this.idRenter = idRenter;
     }
 
     @Override
     public void save() {
-        String str = "INSERT INTO Car_rent (id_car,id_renter,id_insurance,date_from,date_to,result_cost, insurer_approve, owner_approve)"
-                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String str = "INSERT INTO Car_rent (id_car,id_renter,id_insurance,date_from,date_to,result_cost, insurer_approve, owner_approve, car_status)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         updateOrInsert(str);
         DB.commit();
     }
@@ -47,12 +47,12 @@ public class DbCarRent extends CarRent{
     public void update() {
         System.out.println("id carrent " + getCarRentId());
         System.out.println(getInsurerApprove());
+        System.out.println(getCarStatus());
         String str = "update Car_rent set insurer_approve= '" + getInsurerApprove() +
-                "', owner_approve = '" + getOwnerApprove() + "' where id = " + getCarRentId();
+                "', owner_approve = '" + getOwnerApprove() + "', car_status = '" + getCarStatus() + "' where id = " + getCarRentId();
         try {
             PreparedStatement ps = DB.getConnection().prepareStatement(str);            
             ps.execute();
-            
             
         } catch (SQLException ex) {
             Logger.getLogger(DbCar.class.getName()).log(Level.SEVERE, null, ex);
@@ -84,9 +84,10 @@ public class DbCarRent extends CarRent{
         int resultCost = set.getInt("result_cost");
         String insurerApprove = set.getString("insurer_approve");
         String ownerApprove = set.getString("insurer_approve");
+        String statusCar = set.getString("car_status");
         
         CarRent carRent = new DbCarRent(set.getInt("id"), idRenter, null, null, dateFrom, dateTo, resultCost, 
-                insurerApprove, ownerApprove);
+                insurerApprove, ownerApprove, statusCar);
         Car car = getCarById(idCar);
         carRent.setCar(car);
         Insurance insurance = getInsuranceById(idInsurance);
@@ -135,7 +136,7 @@ public class DbCarRent extends CarRent{
             ps.setFloat(6, getCarRentResultCost());
             ps.setString(7, getInsurerApprove());
             ps.setString(8, getOwnerApprove());
-            
+            ps.setString(9, getCarStatus());
             ps.execute();
             
             ResultSet rs = ps.getGeneratedKeys();

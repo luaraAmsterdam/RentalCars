@@ -16,10 +16,9 @@ import main.CarRentMain;
 public class PersonServiceImpl implements PersonService{
 
     @Override
-    public void register(String name, String email, String password) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void register(String name, String email, String password, String role) throws RemoteException {
+        CarRentMain.personLL.register(name, email, password, role);
     }
-    
     @Override
     public Object[] login(String email, String password) throws RemoteException {
         Person person = CarRentMain.personLL.login(email, password);
